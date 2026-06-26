@@ -2,55 +2,75 @@ import { useState } from "react";
 import axios from "axios";
 
 function App() {
-  const [question, setQuestion] = useState("");
-  const [messages, setMessages] = useState([]);
+  const [input, setInput] =
+    useState("");
+
+  const [messages, setMessages] =
+    useState([]);
 
   const sendMessage = async () => {
+    if (!input.trim()) return;
+
+    const userMsg = {
+      role: "user",
+      text: input
+    };
+
+    setMessages(prev => [
+      ...prev,
+      userMsg
+    ]);
+
     const res = await axios.post(
       "http://localhost:5000/chat",
       {
-        question
+        question: input
       }
     );
 
-    setMessages([
-      ...messages,
-      {
-        user: question,
-        bot: res.data.answer
-      }
+    const botMsg = {
+      role: "bot",
+      text: res.data.answer
+    };
+
+    setMessages(prev => [
+      ...prev,
+      botMsg
     ]);
 
-    setQuestion("");
+    setInput("");
   };
 
   return (
-    <div style={{ padding: "30px" }}>
-      <h1>AI Portfolio Assistant</h1>
+    <div className="container">
+      <h1>
+        Raghavendra AI Assistant
+      </h1>
 
-      <input
-        value={question}
-        onChange={(e) =>
-          setQuestion(e.target.value)
-        }
-        placeholder="Ask about Raghavendra..."
-      />
+      <div className="chat-box">
+        {messages.map((msg, index) => (
+          <div
+            key={index}
+            className={msg.role}
+          >
+            {msg.text}
+          </div>
+        ))}
+      </div>
 
-      <button onClick={sendMessage}>
-        Send
-      </button>
+      <div className="input-row">
+        <input
+          value={input}
+          onChange={(e) =>
+            setInput(e.target.value)
+          }
+          placeholder="Ask me anything..."
+        />
 
-      {messages.map((m, i) => (
-        <div key={i}>
-          <p>
-            <b>You:</b> {m.user}
-          </p>
-
-          <p>
-            <b>AI:</b> {m.bot}
-          </p>
-        </div>
-      ))}
+        <button onClick={sendMessage}>
+          Send
+        </button>
+      </div>
     </div>
   );
 }
